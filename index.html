@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload de Arquivo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 30px 15px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    #uploadForm {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    input[type="file"] {
+      padding: 8px;
+      border: 2px dashed #aaa;
+      border-radius: 8px;
+      background-color: #fafafa;
+      cursor: pointer;
+    }
+
+    button {
+      padding: 12px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    #progresso {
+      width: 100%;
+      height: 20px;
+      background: #eee;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #barra {
+      height: 100%;
+      width: 0%;
+      background: #4CAF50;
+      transition: width 0.4s ease;
+    }
+
+    #mensagem {
+      margin-top: 10px;
+      text-align: center;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Enviar Arquivo</h1>
+  <form id="uploadForm">
+    <input type="file" name="arquivo" required>
+    <button type="submit">Enviar</button>
+
+    <div id="progresso">
+      <div id="barra"></div>
+    </div>
+
+    <p id="mensagem"></p>
+  </form>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const barra = document.getElementById('barra');
+    const mensagem = document.getElementById('mensagem');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const xhr = new XMLHttpRequest();
+
+      xhr.open('POST', 'api.php', true);
+
+      xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable) {
+          const percent = (e.loaded / e.total) * 100;
+          barra.style.width = percent + '%';
+        }
+      };
+
+      xhr.onload = function () {
+        const res = JSON.parse(xhr.responseText);
+        if (res.mensagem) {
+          mensagem.textContent = res.mensagem;
+          mensagem.style.color = 'green';
+        } else {
+          mensagem.textContent = res.erro || 'Erro desconhecido.';
+          mensagem.style.color = 'red';
+        }
+        barra.style.width = '0%';
+        form.reset();
+      };
+
+      xhr.onerror = function () {
+        mensagem.textContent = 'Erro ao enviar o arquivo.';
+        mensagem.style.color = 'red';
+        barra.style.width = '0%';
+      };
+
+      xhr.send(formData);
+    });
+  </script>
+</body>
+</html>
